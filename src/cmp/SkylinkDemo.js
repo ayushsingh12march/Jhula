@@ -1,11 +1,8 @@
 import React, { Component } from 'react';
 import {
-  Container,
   Grid,
   Form,
   Button,
-  Header,
-  Segment,
   Accordion,
   Modal,
   Dropdown,
@@ -13,6 +10,7 @@ import {
 } from 'semantic-ui-react';
 import Skylink, { SkylinkLogger, SkylinkEventManager, SkylinkEvents, SkylinkConstants } from 'skylinkjs';
 import HelperSocket from './HelperSocket';
+import RoomSegment from './RoomSegment'
 
 SkylinkLogger.setLevel(SkylinkLogger.logLevels.DEBUG);
 
@@ -166,7 +164,7 @@ class SkylinkDemo extends Component {
   stopStream(location) {
     const streamList = this.skylink.getStreams(location);
     if(streamList.userMedia) {
-      const streamIds = Object.keys(streamList.userMedia);
+      // const streamIds = Object.keys(streamList.userMedia);
       this.skylink.stopStream(location);
     }
   }
@@ -194,8 +192,8 @@ class SkylinkDemo extends Component {
   }
   
   shareScreenReplace(location) {
-    const streamList = this.skylink.getStreams(location);
-    const streamIds = Object.keys(streamList.userMedia);
+    // const streamList = this.skylink.getStreams(location);
+    // const streamIds = Object.keys(streamList.userMedia);
     this.skylink.shareScreen(location, true).then((screenStream) => {
       window.attachMediaStream(document.getElementById(`local-feed_screen_${location}`), screenStream);
     });
@@ -299,7 +297,7 @@ class SkylinkDemo extends Component {
 
   onIncomingStream(evt) {
     const props = evt.detail;
-    const { stream, isSelf, peerId, room, isReplace, streamId, isVideo, isAudio } = props;
+    const { stream, isSelf, peerId, room, isReplace, isVideo, isAudio } = props;
 
     if (!isSelf && !isReplace) {
       if ((isAudio && isVideo) || (isVideo && !isAudio)) {
@@ -445,65 +443,11 @@ class SkylinkDemo extends Component {
   }
 }
 
-const UserFormFieldCmp = (props) => {
-  const { location, stateKey, buttonText, userNameEntered, joinRoom, toggleAudioVideo } = props;
-  return <Grid.Row>
-  <Grid.Column width={3}>
-    <Form >
-    <Form.Field>
-    <label>Enter Name</label>
-    <input value={location.username} onChange={userNameEntered.bind(this, stateKey)} placeholder='Type your Name' />
-    </Form.Field>
-    <Button loading={location.showJoinRoomLoader} primary disabled={location.username === ''} onClick={joinRoom.bind(this, stateKey)}>{buttonText}</Button>
-      <div style={{ padding: '5px'}}>
-        <label style={{ paddingRight: '5px'}}>On Sound</label>
-        <Checkbox style={{ verticalAlign: 'middle'}} value={'audio'} checked={!location.streamMuted.audioMuted} onClick={toggleAudioVideo.bind(this, stateKey)}/>
-        <br/>
-        <label style={{ paddingRight: '5px'}}>On Video</label>
-        <Checkbox style={{ verticalAlign: 'middle'}} value={'video'} checked={!location.streamMuted.videoMuted} onClick={toggleAudioVideo.bind(this, stateKey)}/>
-      </div>
-  </Form>
-  </Grid.Column>
-  </Grid.Row>
-}
 
-const LocalFeedColumn = (props) => {
-  const { stateKey, location } = props;
-  return <Grid.Column width={6}>
-  <Header as='div' attached='top'>
-    <Header.Content style={{ padding: '0px' }}>{location.username} ({location.peerId})</Header.Content>
-    <Messaging {...props} />
-  </Header>
-  <Segment attached>
-    <video autoPlay muted style={{ width: '100%' }} controls={true} playsInline id={`local-feed_${stateKey}`} />
-    <video autoPlay muted style={{ width: '100%' }} controls={true} playsInline id={`local-feed_screen_${stateKey}`} />
-    <PublicMethodsForRoom {...props} />
-  </Segment>
-  </Grid.Column>
-}
 
-const RemoteFeedColumn = (props) => {
-  const { stateKey, location: { remotePeers } } = props;
-  return <Grid.Column width={10}>
-  <Header as='div' attached='top'>
-    <Header.Content style={{ padding: '0px' }}>Remote Peers</Header.Content>
-  </Header>
-  <Segment attached>
-  <Grid columns={4} padded>
-  {
-    remotePeers.map((peerId) => {
-    return <Grid.Column key={peerId}>
-      <label id={`remote-feed_peerId_${peerId}_${stateKey}`}>{peerId}</label>
-      <video autoPlay playsInline controls={true} id={`remote-feed_${peerId}_${stateKey}`} style={{ width: '100%' }} />
-      <video autoPlay playsInline controls={true} id={`remote-feed_screen_${peerId}_${stateKey}`} style={{ width: '50%' }} />
-    <audio autoPlay playsInline id={`remote-feed_audio_${peerId}_${stateKey}`} style={{ width: '50%' }} />
-    </Grid.Column>
-  })
-}
-</Grid>
-  </Segment>
-  </Grid.Column>
-}
+
+
+
 
 const Messaging = (props) => {
   const { stateKey, location, sendMessage, messageEntered, onPeerSelected, onMessageChannelSelected } = props;
@@ -590,63 +534,4 @@ const Messaging = (props) => {
     <Button compact color='red' className='public-method-btn' onClick={stopScreen.bind(this, stateKey)}>Stop Screen</Button>
     </Grid.Column>
   }
-
-  const RoomSegment = (props) => {
-    const {
-      location,
-      stateKey,
-      buttonText,
-      joinRoom,
-      toggleAudioVideo,
-      userNameEntered,
-      sendMessage,
-      messageEntered,
-      shareScreen,
-      getUserMedia,
-      stopStream,
-      stopScreen,
-      leaveRoom,
-      onPeerSelected,
-      onMessageChannelSelected,
-      lockRoom,
-      shareScreenReplace,
-      getPeersStream,
-      getPeers,
-    } = props;
-    return (
-      <Grid celled='internally'>
-      {
-    !location.inRoom ? <UserFormFieldCmp
-    location={location}
-    stateKey={stateKey}
-    buttonText={buttonText}
-    joinRoom={joinRoom}
-    toggleAudioVideo={toggleAudioVideo}
-    userNameEntered={userNameEntered}
-    /> : <Grid.Row>
-    <LocalFeedColumn
-    stateKey={stateKey}
-    location={location}
-    sendMessage={sendMessage}
-    messageEntered={messageEntered}
-
-    shareScreen={shareScreen}
-    shareScreenReplace={shareScreenReplace}
-    getUserMedia={getUserMedia}
-    stopStream={stopStream}
-    stopScreen={stopScreen}
-    leaveRoom={leaveRoom}
-    onPeerSelected={onPeerSelected}
-    onMessageChannelSelected={onMessageChannelSelected}
-    lockRoom={lockRoom}
-    getPeersStream={getPeersStream}
-    getPeers={getPeers}
-    />
-    <RemoteFeedColumn stateKey={stateKey} location={location} />
-  </Grid.Row>
-  }
-  </Grid>
-  )
-  };
-
-  export default SkylinkDemo;
+  export  { SkylinkDemo, Messaging,PublicMethodsForRoom};
