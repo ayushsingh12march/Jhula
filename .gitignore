@@ -22,5 +22,6 @@ yarn-error.log*
 
 /src/cmp/app-config.js
 
-# configurations
+# configurations and scripts
 /config
+/scripts
